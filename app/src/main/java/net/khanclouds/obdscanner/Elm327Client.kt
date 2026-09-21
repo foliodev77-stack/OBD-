@@ -13,10 +13,10 @@ class Elm327Client{
   val z=o.toString().replace("\r"," ").replace("\n"," ").trim();if(z.isBlank())throw Exception("No response for $c");return z
  }
  private fun hexBytes(r:String):List<Int>{val clean=r.replace(Regex("[^0-9A-Fa-f]"),"");return clean.chunked(2).mapNotNull{it.toIntOrNull(16)}}
- private fun value(pid:String):List<Int>{val b=hexBytes(command("01$pid"));val marker=listOf(0x41,pid.toInt(16));val i=b.windowed(2).indexOf(marker);return if(i>=0)b.drop(i+2) else emptyList()}
+ private fun value(pid:String):List<Int>{ val b=hexBytes(command("01$pid")); val marker=listOf(0x41,pid.toInt(16)); val i=b.windowed(2).indexOf(marker); return if(i>=0)b.drop(i+2) else emptyList() }
  private fun vin():String{val b=hexBytes(command("0902",8000));val chars=b.filter{it in 32..126}.map{it.toChar()}.joinToString("");return Regex("[A-HJ-NPR-Z0-9]{17}").find(chars)?.value?:"Not returned by ECU"}
  private fun dtcs():String{val b=hexBytes(command("03"));val i=b.indexOf(0x43);if(i<0)return "No standard DTC response";val x=b.drop(i+1);val out=mutableListOf<String>();for(k in x.indices step 2){if(k+1>=x.size)break;val a=x[k];val c=x[k+1];if(a==0&&c==0)continue;val pre=arrayOf("P","C","B","U")[(a shr 6) and 3];out.add("$pre${(a shr 4) and 3}${a and 15}${(c shr 4) and 15}${c and 15}")};return if(out.isEmpty())"No stored powertrain DTCs" else out.joinToString(", ")}
- fun liveData():String{fun one(p:String)=value(p);val rpm=one("0C");val speed=one("0D");val cool=one("05");val load=one("04");val throttle=one("11");val maf=one("10");val volt=runCatching{command("ATRV")}.getOrDefault("N/A")
+ fun liveData():String{\n  fun one(p:String):List<Int> = value(p)\n  val rpm=one("0C"); val speed=one("0D"); val cool=one("05"); val load=one("04"); val throttle=one("11"); val maf=one("10"); val volt=runCatching{command("ATRV")}.getOrDefault("N/A")
   return """LIVE ENGINE DATA
 RPM: ${if(rpm.size>=2)(rpm[0]*256+rpm[1])/4 else "N/A"}
 Vehicle speed: ${speed.firstOrNull()?:"N/A"} km/h
