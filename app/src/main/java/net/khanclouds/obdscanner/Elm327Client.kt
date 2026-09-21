@@ -6,10 +6,21 @@ import android.bluetooth.BluetoothSocket
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.UUID
+import kotlinx.coroutines.runBlocking
+import com.github.eltonvs.obd.connection.ObdDeviceConnection
+import com.github.eltonvs.obd.command.control.VINCommand
+import com.github.eltonvs.obd.command.engine.RPMCommand
+import com.github.eltonvs.obd.command.engine.SpeedCommand
+import com.github.eltonvs.obd.command.engine.ThrottlePositionCommand
+import com.github.eltonvs.obd.command.engine.MassAirFlowCommand
+import com.github.eltonvs.obd.command.temperature.EngineCoolantTemperatureCommand
+import com.github.eltonvs.obd.command.temperature.AirIntakeTemperatureCommand
+import com.github.eltonvs.obd.command.fuel.FuelLevelCommand
 
 class Elm327Client {
     private var socket: BluetoothSocket? = null
     private var reader: BufferedReader? = null
+    private var obd: ObdDeviceConnection? = null
 
     fun connect(device: BluetoothDevice) {
         close()
@@ -31,6 +42,7 @@ class Elm327Client {
         command("ATZ", 7000)
         Thread.sleep(500)
         for (cmd in listOf("ATE0", "ATL0", "ATS0", "ATH0", "ATSP0")) command(cmd)
+        obd = ObdDeviceConnection(socket!!.inputStream, socket!!.outputStream)
     }
 
     fun command(cmd: String, timeout: Long = 5000): String {
@@ -100,14 +112,13 @@ class Elm327Client {
     }
 
     fun readVin(): String {
-        val raw=command("0902",10000)
-        val records=mode09Records(raw,"2")
-        val hex=records.joinToString("") { it.second }
-        val ascii=hex.chunked(2).mapNotNull { it.toIntOrNull(16) }
-            .filter { it in 0x30..0x39 || it in 0x41..0x5A }
-            .map { it.toChar() }.joinToString("")
-        return Regex("[A-HJ-NPR-Z0-9]{17}").find(ascii)?.value
-            ?: "Non disponible (véhicule n'a pas renvoyé le VIN standard)"
+        val connection = obd ?: throw Exception("Not connected")
+        return runBlocking {
+            val response = connection.run(VINCommand(), useCache = false, maxRetries = 8)
+            val vin = response.value.trim().uppercase()
+            if (Regex("^[A-HJ-NPR-Z0-9]{17}$").matches(vin)) vin
+            else "Non disponible (ECU VIN OBD-II invalide/non fourni)"
+        }
     }
 
     fun readEcuName(): String {
@@ -141,29 +152,21 @@ class Elm327Client {
     }
 
     fun liveData(): String {
-        val supported = runCatching { command("0100") }.getOrDefault("N/A")
-        val rpm = pid("0C")
-        val speed = pid("0D")
-        val coolant = pid("05")
-        val load = pid("04")
-        val throttle = pid("11")
-        val maf = pid("10")
-        val voltage = runCatching { command("ATRV") }.getOrDefault("N/A")
-        val rpmText = if (rpm.size >= 2) ((rpm[0] * 256 + rpm[1]) / 4).toString() else "N/A"
-        val speedText = speed.firstOrNull()?.toString() ?: "N/A"
-        val coolantText = coolant.firstOrNull()?.let { (it - 40).toString() } ?: "N/A"
-        val loadText = load.firstOrNull()?.let { (it * 100 / 255).toString() } ?: "N/A"
-        val throttleText = throttle.firstOrNull()?.let { (it * 100 / 255).toString() } ?: "N/A"
-        val mafText = if (maf.size >= 2) ((maf[0] * 256 + maf[1]) / 100.0).toString() else "N/A"
-        return "LIVE ENGINE DATA — ECU VALUES\n" +
-            "Supported PID response: $supported\n" +
-            "RPM: $rpmText\n" +
-            "Vehicle speed: $speedText km/h\n" +
-            "Coolant: $coolantText C\n" +
-            "Engine load: $loadText %\n" +
-            "Throttle: $throttleText %\n" +
-            "MAF: $mafText g/s\n" +
-            "Adapter voltage: $voltage"
+        val connection = obd ?: throw Exception("Not connected")
+        return runBlocking {
+            suspend fun metric(label: String, block: suspend () -> String): String =
+                try { label + ": " + block() } catch (e: Exception) { label + ": N/A (" + (e.message ?: "unsupported") + ")" }
+            val lines = listOf(
+                metric("RPM") { val r=connection.run(RPMCommand(), maxRetries=5); r.value + " " + r.unit },
+                metric("Vitesse") { val r=connection.run(SpeedCommand(), maxRetries=5); r.value + " " + r.unit },
+                metric("Liquide refroidissement") { val r=connection.run(EngineCoolantTemperatureCommand(), maxRetries=5); r.value + " " + r.unit },
+                metric("Papillon") { val r=connection.run(ThrottlePositionCommand(), maxRetries=5); r.value + " " + r.unit },
+                metric("MAF") { val r=connection.run(MassAirFlowCommand(), maxRetries=5); r.value + " " + r.unit },
+                metric("Air admission") { val r=connection.run(AirIntakeTemperatureCommand(), maxRetries=5); r.value + " " + r.unit },
+                metric("Carburant") { val r=connection.run(FuelLevelCommand(), maxRetries=5); r.value + " " + r.unit }
+            )
+            "DONNÉES ECU RÉELLES — kotlin-obd-api\n" + lines.joinToString("\n")
+        }
     }
 
     fun vinDiagnosticCapture(): String {
@@ -223,5 +226,6 @@ class Elm327Client {
         try { socket?.close() } catch (_: Exception) {}
         socket = null
         reader = null
+        obd = null
     }
 }
