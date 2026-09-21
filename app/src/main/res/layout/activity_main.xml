@@ -20,6 +20,11 @@
    </LinearLayout>
 
    <LinearLayout android:id="@+id/diagnosticPanel" android:visibility="gone" android:orientation="vertical" android:layout_marginTop="18dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+    <TextView android:text="OUTILS ATELIER" android:textColor="#64748B" android:textStyle="bold" android:textSize="12sp" android:layout_marginBottom="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    <LinearLayout android:orientation="horizontal" android:weightSum="2" android:layout_width="match_parent" android:layout_height="wrap_content">
+     <Button android:id="@+id/healthBtn" android:text="SANTÉ OBD" android:layout_weight="1" android:layout_width="0dp" android:layout_height="54dp"/>
+     <Button android:id="@+id/infoBtn" android:text="INFOS ECU" android:layout_weight="1" android:layout_marginStart="6dp" android:layout_width="0dp" android:layout_height="54dp"/>
+    </LinearLayout>
     <TextView android:text="DIAGNOSTIC" android:textColor="#64748B" android:textStyle="bold" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
     <Button android:id="@+id/quickBtn" android:text="⚡  TEST RAPIDE • TOUS SYSTÈMES" android:textStyle="bold" android:layout_marginTop="8dp" android:layout_width="match_parent" android:layout_height="58dp"/>
     <Button android:id="@+id/scanBtn" android:text="⚠  CODES DÉFAUT • RAPPORT" android:textStyle="bold" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="58dp"/>
