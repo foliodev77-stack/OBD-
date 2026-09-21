@@ -1,41 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
- android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="#F4F7FB">
+ android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="#EEF2F6">
  <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
-  <LinearLayout android:orientation="vertical" android:padding="20dp" android:background="#0B1739" android:layout_width="match_parent" android:layout_height="wrap_content">
-   <TextView android:text="OBD GARAGE" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="28sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-   <TextView android:text="Diagnostic intelligent • Atelier" android:textColor="#AFC3F7" android:textSize="14sp" android:layout_marginTop="3dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-   <TextView android:id="@+id/status" android:text="Étape 1 • Connectez l’adaptateur OBD" android:textColor="#6EE7B7" android:textStyle="bold" android:layout_marginTop="18dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+  <LinearLayout android:gravity="center_vertical" android:padding="16dp" android:background="#111C2C" android:layout_width="match_parent" android:layout_height="64dp">
+   <TextView android:id="@+id/backBtn" android:text="‹" android:textSize="36sp" android:textColor="#FFFFFF" android:visibility="gone" android:gravity="center" android:layout_width="42dp" android:layout_height="match_parent"/>
+   <TextView android:id="@+id/title" android:text="OBD GARAGE" android:textStyle="bold" android:textSize="24sp" android:textColor="#FFFFFF" android:layout_weight="1" android:layout_width="0dp" android:layout_height="wrap_content"/>
+   <TextView android:id="@+id/status" android:text="● Hors ligne" android:textColor="#9FB1C7" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
   </LinearLayout>
 
-  <LinearLayout android:orientation="vertical" android:padding="16dp" android:layout_width="match_parent" android:layout_height="wrap_content">
-   <TextView android:text="CONNEXION VÉHICULE" android:textColor="#64748B" android:textStyle="bold" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-   <Spinner android:id="@+id/deviceSpinner" android:background="#FFFFFF" android:padding="8dp" android:layout_marginTop="8dp" android:layout_width="match_parent" android:layout_height="56dp"/>
-   <Button android:id="@+id/connectBtn" android:text="1  CONNECTER OBD" android:textStyle="bold" android:layout_marginTop="10dp" android:layout_width="match_parent" android:layout_height="56dp"/>
-   <Button android:id="@+id/vinBtn" android:text="2  VIN SCAN • IDENTIFIER LE VÉHICULE" android:textStyle="bold" android:enabled="false" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="56dp"/>
-
-   <LinearLayout android:id="@+id/vehicleCard" android:visibility="gone" android:orientation="vertical" android:padding="18dp" android:layout_marginTop="14dp" android:background="#E8F7EF" android:layout_width="match_parent" android:layout_height="wrap_content">
-    <TextView android:text="✓  VÉHICULE IDENTIFIÉ" android:textColor="#078447" android:textStyle="bold" android:textSize="14sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-    <TextView android:id="@+id/vehicleInfo" android:textColor="#10203B" android:textSize="16sp" android:lineSpacingExtra="3dp" android:paddingTop="9dp" android:textIsSelectable="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+  <LinearLayout android:id="@+id/homePage" android:orientation="vertical" android:padding="14dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+   <TextView android:text="ATELIER DE DIAGNOSTIC" android:textStyle="bold" android:textColor="#526274" android:textSize="12sp" android:layout_marginBottom="10dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+   <LinearLayout android:orientation="horizontal" android:weightSum="3" android:layout_width="match_parent" android:layout_height="150dp">
+    <Button android:id="@+id/diagnoseTile" android:text="🔧\nDIAGNOSTIQUER" android:textSize="15sp" android:textStyle="bold" android:layout_margin="3dp" android:layout_weight="1" android:layout_width="0dp" android:layout_height="match_parent"/>
+    <Button android:id="@+id/obdTile" android:text="🚙\nOBD II" android:textSize="15sp" android:textStyle="bold" android:layout_margin="3dp" android:layout_weight="1" android:layout_width="0dp" android:layout_height="match_parent"/>
+    <Button android:id="@+id/readinessTile" android:text="✓\nI/M" android:textSize="15sp" android:textStyle="bold" android:layout_margin="3dp" android:layout_weight="1" android:layout_width="0dp" android:layout_height="match_parent"/>
    </LinearLayout>
-
-   <LinearLayout android:id="@+id/diagnosticPanel" android:visibility="gone" android:orientation="vertical" android:layout_marginTop="18dp" android:layout_width="match_parent" android:layout_height="wrap_content">
-    <TextView android:text="OUTILS ATELIER" android:textColor="#64748B" android:textStyle="bold" android:textSize="12sp" android:layout_marginBottom="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-    <LinearLayout android:orientation="horizontal" android:weightSum="2" android:layout_width="match_parent" android:layout_height="wrap_content">
-     <Button android:id="@+id/healthBtn" android:text="SANTÉ OBD" android:layout_weight="1" android:layout_width="0dp" android:layout_height="54dp"/>
-     <Button android:id="@+id/infoBtn" android:text="INFOS ECU" android:layout_weight="1" android:layout_marginStart="6dp" android:layout_width="0dp" android:layout_height="54dp"/>
-    </LinearLayout>
-    <TextView android:text="DIAGNOSTIC" android:textColor="#64748B" android:textStyle="bold" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-    <Button android:id="@+id/quickBtn" android:text="⚡  TEST RAPIDE • TOUS SYSTÈMES" android:textStyle="bold" android:layout_marginTop="8dp" android:layout_width="match_parent" android:layout_height="58dp"/>
-    <Button android:id="@+id/scanBtn" android:text="⚠  CODES DÉFAUT • RAPPORT" android:textStyle="bold" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="58dp"/>
-    <Button android:id="@+id/liveBtn" android:text="▥  DONNÉES EN DIRECT" android:textStyle="bold" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="58dp"/>
-    <Button android:id="@+id/clearBtn" android:text="⌫  EFFACER CODES MOTEUR" android:textStyle="bold" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="58dp"/>
+   <LinearLayout android:orientation="horizontal" android:weightSum="3" android:layout_width="match_parent" android:layout_height="150dp">
+    <Button android:id="@+id/resetTile" android:text="↻\nRÉINITIALISER" android:textSize="14sp" android:textStyle="bold" android:layout_margin="3dp" android:layout_weight="1" android:layout_width="0dp" android:layout_height="match_parent"/>
+    <Button android:id="@+id/batteryTile" android:text="▣\nBATTERIE" android:textSize="14sp" android:textStyle="bold" android:layout_margin="3dp" android:layout_weight="1" android:layout_width="0dp" android:layout_height="match_parent"/>
+    <Button android:id="@+id/dataTile" android:text="▤\nDONNÉES" android:textSize="14sp" android:textStyle="bold" android:layout_margin="3dp" android:layout_weight="1" android:layout_width="0dp" android:layout_height="match_parent"/>
    </LinearLayout>
+   <LinearLayout android:orientation="horizontal" android:weightSum="3" android:layout_width="match_parent" android:layout_height="150dp">
+    <Button android:id="@+id/reportTile" android:text="▥\nRAPPORTS" android:textSize="14sp" android:textStyle="bold" android:layout_margin="3dp" android:layout_weight="1" android:layout_width="0dp" android:layout_height="match_parent"/>
+    <Button android:id="@+id/updateTile" android:text="↓\nMISE À NIVEAU" android:textSize="13sp" android:textStyle="bold" android:layout_margin="3dp" android:layout_weight="1" android:layout_width="0dp" android:layout_height="match_parent"/>
+    <Button android:id="@+id/settingsTile" android:text="⚙\nPARAMÈTRES" android:textSize="13sp" android:textStyle="bold" android:layout_margin="3dp" android:layout_weight="1" android:layout_width="0dp" android:layout_height="match_parent"/>
+   </LinearLayout>
+  </LinearLayout>
 
-   <LinearLayout android:orientation="vertical" android:padding="18dp" android:layout_marginTop="18dp" android:layout_marginBottom="24dp" android:background="#FFFFFF" android:layout_width="match_parent" android:layout_height="wrap_content">
-    <TextView android:text="RÉSULTAT DU DIAGNOSTIC" android:textColor="#0F172A" android:textStyle="bold" android:textSize="14sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-    <View android:background="#E2E8F0" android:layout_marginTop="10dp" android:layout_marginBottom="12dp" android:layout_width="match_parent" android:layout_height="1dp"/>
-    <TextView android:id="@+id/results" android:text="Connectez l’OBD puis lancez le VIN Scan." android:textColor="#334155" android:textSize="16sp" android:lineSpacingExtra="4dp" android:textIsSelectable="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+  <LinearLayout android:id="@+id/diagnosticPage" android:visibility="gone" android:orientation="vertical" android:padding="16dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+   <TextView android:text="CONNEXION" android:textStyle="bold" android:textColor="#526274" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+   <Spinner android:id="@+id/deviceSpinner" android:background="#FFFFFF" android:padding="10dp" android:layout_marginTop="8dp" android:layout_width="match_parent" android:layout_height="58dp"/>
+   <Button android:id="@+id/connectBtn" android:text="1  CONNECTER L’ADAPTATEUR OBD" android:textStyle="bold" android:layout_marginTop="10dp" android:layout_width="match_parent" android:layout_height="58dp"/>
+   <Button android:id="@+id/vinBtn" android:text="2  VIN SCAN AUTOMATIQUE" android:textStyle="bold" android:enabled="false" android:layout_marginTop="8dp" android:layout_width="match_parent" android:layout_height="58dp"/>
+   <LinearLayout android:id="@+id/vehicleCard" android:visibility="gone" android:orientation="vertical" android:padding="18dp" android:background="#FFFFFF" android:layout_marginTop="12dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+    <TextView android:text="VÉHICULE IDENTIFIÉ" android:textColor="#0B9A64" android:textStyle="bold" android:textSize="16sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/vehicleInfo" android:textSize="17sp" android:textColor="#172233" android:paddingTop="8dp" android:lineSpacingExtra="4dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+   </LinearLayout>
+   <LinearLayout android:id="@+id/diagnosticPanel" android:visibility="gone" android:orientation="vertical" android:layout_marginTop="12dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+    <Button android:id="@+id/quickBtn" android:text="⚡ TEST RAPIDE" android:textStyle="bold" android:layout_width="match_parent" android:layout_height="58dp"/>
+    <Button android:id="@+id/scanBtn" android:text="⚠ RAPPORT / CODES DÉFAUT" android:textStyle="bold" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="58dp"/>
+    <Button android:id="@+id/liveBtn" android:text="▤ DONNÉES EN DIRECT" android:textStyle="bold" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="58dp"/>
+    <Button android:id="@+id/healthBtn" android:text="✓ SANTÉ OBD" android:textStyle="bold" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="58dp"/>
+    <Button android:id="@+id/infoBtn" android:text="ⓘ INFORMATIONS ECU" android:textStyle="bold" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="58dp"/>
+    <Button android:id="@+id/clearBtn" android:text="EFFACER LES CODES MOTEUR" android:textStyle="bold" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="58dp"/>
+   </LinearLayout>
+   <LinearLayout android:orientation="vertical" android:padding="16dp" android:background="#FFFFFF" android:layout_marginTop="14dp" android:layout_marginBottom="24dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+    <TextView android:text="RÉSULTAT" android:textStyle="bold" android:textColor="#172233" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/results" android:text="Connectez l’OBD pour commencer." android:textSize="16sp" android:textColor="#334155" android:paddingTop="12dp" android:lineSpacingExtra="5dp" android:textIsSelectable="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
    </LinearLayout>
   </LinearLayout>
  </LinearLayout>
