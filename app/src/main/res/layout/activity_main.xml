@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
-<LinearLayout android:orientation="vertical" android:padding="18dp" android:layout_width="match_parent" android:layout_height="wrap_content">
-<TextView android:text="OBD Garage Pro" android:textStyle="bold" android:textSize="28sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-<TextView android:id="@+id/status" android:text="Ready" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-<Spinner android:id="@+id/deviceSpinner" android:layout_width="match_parent" android:layout_height="56dp"/>
-<Button android:id="@+id/connectBtn" android:text="CONNECT OBD" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-<Button android:id="@+id/scanBtn" android:text="FULL VEHICLE SCAN" android:enabled="false" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-<Button android:id="@+id/liveBtn" android:text="LIVE DATA" android:enabled="false" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-<Button android:id="@+id/clearBtn" android:text="CLEAR DTC CODES" android:enabled="false" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-<TextView android:id="@+id/results" android:text="Connect the adapter, then run Full Vehicle Scan." android:textIsSelectable="true" android:textSize="16sp" android:paddingTop="18dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#0B1020">
+<LinearLayout android:orientation="vertical" android:padding="20dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+<TextView android:text="OBD GARAGE" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="30sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+<TextView android:text="Professional vehicle diagnostics" android:textColor="#9CA3AF" android:textSize="14sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+<TextView android:id="@+id/status" android:text="Step 1 • Connect your OBD adapter" android:textColor="#22C55E" android:paddingTop="18dp" android:paddingBottom="10dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+<Spinner android:id="@+id/deviceSpinner" android:background="#FFFFFF" android:layout_width="match_parent" android:layout_height="54dp"/>
+<Button android:id="@+id/connectBtn" android:text="1  CONNECT OBD" android:layout_marginTop="10dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+<Button android:id="@+id/vinBtn" android:text="2  SCAN VIN & IDENTIFY VEHICLE" android:enabled="false" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+<LinearLayout android:id="@+id/vehicleCard" android:visibility="gone" android:orientation="vertical" android:padding="16dp" android:layout_marginTop="14dp" android:background="#172033" android:layout_width="match_parent" android:layout_height="wrap_content">
+<TextView android:text="VEHICLE IDENTIFIED" android:textColor="#22C55E" android:textStyle="bold" android:textSize="13sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+<TextView android:id="@+id/vehicleInfo" android:textColor="#FFFFFF" android:textSize="17sp" android:paddingTop="8dp" android:textIsSelectable="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+</LinearLayout>
+<LinearLayout android:id="@+id/diagnosticPanel" android:visibility="gone" android:orientation="vertical" android:layout_marginTop="12dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+<Button android:id="@+id/scanBtn" android:text="FULL DIAGNOSTIC SCAN" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+<Button android:id="@+id/liveBtn" android:text="LIVE ENGINE DATA" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+<Button android:id="@+id/clearBtn" android:text="CLEAR ENGINE DTC CODES" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+</LinearLayout>
+<TextView android:id="@+id/results" android:text="Connect → scan VIN → diagnostics will unlock." android:textColor="#E5E7EB" android:textSize="16sp" android:paddingTop="18dp" android:textIsSelectable="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
 </LinearLayout></ScrollView>
