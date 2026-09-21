@@ -1,20 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#0B1020">
-<LinearLayout android:orientation="vertical" android:padding="20dp" android:layout_width="match_parent" android:layout_height="wrap_content">
-<TextView android:text="OBD GARAGE" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="30sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-<TextView android:text="Diagnostic intelligent" android:textColor="#9CA3AF" android:textSize="14sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-<TextView android:id="@+id/status" android:text="Step 1 • Connect your OBD adapter" android:textColor="#22C55E" android:paddingTop="18dp" android:paddingBottom="10dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-<Spinner android:id="@+id/deviceSpinner" android:background="#FFFFFF" android:layout_width="match_parent" android:layout_height="54dp"/>
-<Button android:id="@+id/connectBtn" android:text="1  CONNECT OBD" android:layout_marginTop="10dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-<Button android:id="@+id/vinBtn" android:text="2  SCAN VIN &amp; IDENTIFY VEHICLE" android:enabled="false" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-<LinearLayout android:id="@+id/vehicleCard" android:visibility="gone" android:orientation="vertical" android:padding="16dp" android:layout_marginTop="14dp" android:background="#172033" android:layout_width="match_parent" android:layout_height="wrap_content">
-<TextView android:text="VEHICLE IDENTIFIED" android:textColor="#22C55E" android:textStyle="bold" android:textSize="13sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-<TextView android:id="@+id/vehicleInfo" android:textColor="#FFFFFF" android:textSize="17sp" android:paddingTop="8dp" android:textIsSelectable="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-</LinearLayout>
-<LinearLayout android:id="@+id/diagnosticPanel" android:visibility="gone" android:orientation="vertical" android:layout_marginTop="12dp" android:layout_width="match_parent" android:layout_height="wrap_content">
-<Button android:id="@+id/quickBtn" android:text="TEST RAPIDE - TOUS LES SYSTEMES" android:layout_width="match_parent" android:layout_height="wrap_content"/>\n<Button android:id="@+id/scanBtn" android:text="CODES DEFAUT / RAPPORT" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-<Button android:id="@+id/liveBtn" android:text="DONNEES EN DIRECT" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-<Button android:id="@+id/clearBtn" android:text="EFFACER LES CODES MOTEUR" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-</LinearLayout>
-<TextView android:id="@+id/results" android:text="Connect → scan VIN → diagnostics will unlock." android:textColor="#E5E7EB" android:textSize="16sp" android:paddingTop="18dp" android:textIsSelectable="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-</LinearLayout></ScrollView>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+ android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="#F4F7FB">
+ <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
+  <LinearLayout android:orientation="vertical" android:padding="20dp" android:background="#0B1739" android:layout_width="match_parent" android:layout_height="wrap_content">
+   <TextView android:text="OBD GARAGE" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="28sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+   <TextView android:text="Diagnostic intelligent • Atelier" android:textColor="#AFC3F7" android:textSize="14sp" android:layout_marginTop="3dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+   <TextView android:id="@+id/status" android:text="Étape 1 • Connectez l’adaptateur OBD" android:textColor="#6EE7B7" android:textStyle="bold" android:layout_marginTop="18dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+  </LinearLayout>
+
+  <LinearLayout android:orientation="vertical" android:padding="16dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+   <TextView android:text="CONNEXION VÉHICULE" android:textColor="#64748B" android:textStyle="bold" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+   <Spinner android:id="@+id/deviceSpinner" android:background="#FFFFFF" android:padding="8dp" android:layout_marginTop="8dp" android:layout_width="match_parent" android:layout_height="56dp"/>
+   <Button android:id="@+id/connectBtn" android:text="1  CONNECTER OBD" android:textStyle="bold" android:layout_marginTop="10dp" android:layout_width="match_parent" android:layout_height="56dp"/>
+   <Button android:id="@+id/vinBtn" android:text="2  VIN SCAN • IDENTIFIER LE VÉHICULE" android:textStyle="bold" android:enabled="false" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="56dp"/>
+
+   <LinearLayout android:id="@+id/vehicleCard" android:visibility="gone" android:orientation="vertical" android:padding="18dp" android:layout_marginTop="14dp" android:background="#E8F7EF" android:layout_width="match_parent" android:layout_height="wrap_content">
+    <TextView android:text="✓  VÉHICULE IDENTIFIÉ" android:textColor="#078447" android:textStyle="bold" android:textSize="14sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/vehicleInfo" android:textColor="#10203B" android:textSize="16sp" android:lineSpacingExtra="3dp" android:paddingTop="9dp" android:textIsSelectable="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+   </LinearLayout>
+
+   <LinearLayout android:id="@+id/diagnosticPanel" android:visibility="gone" android:orientation="vertical" android:layout_marginTop="18dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+    <TextView android:text="DIAGNOSTIC" android:textColor="#64748B" android:textStyle="bold" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    <Button android:id="@+id/quickBtn" android:text="⚡  TEST RAPIDE • TOUS SYSTÈMES" android:textStyle="bold" android:layout_marginTop="8dp" android:layout_width="match_parent" android:layout_height="58dp"/>
+    <Button android:id="@+id/scanBtn" android:text="⚠  CODES DÉFAUT • RAPPORT" android:textStyle="bold" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="58dp"/>
+    <Button android:id="@+id/liveBtn" android:text="▥  DONNÉES EN DIRECT" android:textStyle="bold" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="58dp"/>
+    <Button android:id="@+id/clearBtn" android:text="⌫  EFFACER CODES MOTEUR" android:textStyle="bold" android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="58dp"/>
+   </LinearLayout>
+
+   <LinearLayout android:orientation="vertical" android:padding="18dp" android:layout_marginTop="18dp" android:layout_marginBottom="24dp" android:background="#FFFFFF" android:layout_width="match_parent" android:layout_height="wrap_content">
+    <TextView android:text="RÉSULTAT DU DIAGNOSTIC" android:textColor="#0F172A" android:textStyle="bold" android:textSize="14sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    <View android:background="#E2E8F0" android:layout_marginTop="10dp" android:layout_marginBottom="12dp" android:layout_width="match_parent" android:layout_height="1dp"/>
+    <TextView android:id="@+id/results" android:text="Connectez l’OBD puis lancez le VIN Scan." android:textColor="#334155" android:textSize="16sp" android:lineSpacingExtra="4dp" android:textIsSelectable="true" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+   </LinearLayout>
+  </LinearLayout>
+ </LinearLayout>
+</ScrollView>
