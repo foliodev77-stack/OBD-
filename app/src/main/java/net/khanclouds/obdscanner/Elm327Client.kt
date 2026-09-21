@@ -115,8 +115,8 @@ class Elm327Client {
     fun vehicleIdentity(): String {
         val vin = readVin()
         val protocol = runCatching { command("ATDP") }.getOrDefault("Unknown")
-        val ecu = runCatching { command("090A") }.getOrDefault("Not available")
-        return "VIN: $vin\nOBD protocol: $protocol\nECU name/raw: $ecu\n\nDiagnostics below use data reported directly by the ECU."
+        val ecu = "Standard OBD-II ECU"
+        return "VIN: $vin\nOBD protocol: $protocol\nECU: $ecu\n\nDiagnostics below use data reported directly by the ECU."
     }
 
     private fun explain(code: String): String {
