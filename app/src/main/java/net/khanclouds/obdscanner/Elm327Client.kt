@@ -51,30 +51,39 @@ class Elm327Client {
         return result
     }
 
-    private fun hexBytes(response: String): List<Int> {
-        val normalized = response.uppercase()
-            .replace("SEARCHING...", " ")
-            .replace("NO DATA", " ")
-            .replace("STOPPED", " ")
-        return Regex("(?<![0-9A-F])[0-9A-F]{2}(?![0-9A-F])")
-            .findAll(normalized).map { it.value.toInt(16) }.toList()
+    private fun payloadLines(response: String): List<List<Int>> {
+        return response.uppercase().replace("SEARCHING...", " ").replace("NO DATA", " ")
+            .split(Regex("[\\r\\n]+|(?=\\d+:)"))
+            .map { line ->
+                val clean = line.replace(Regex("^\\s*\\d+:\\s*"), "")
+                Regex("[0-9A-F]{2}").findAll(clean).map { it.value.toInt(16) }.toList()
+            }.filter { it.isNotEmpty() }
     }
+
+    private fun hexBytes(response: String): List<Int> = payloadLines(response).flatten()
 
     private fun pid(pid: String): List<Int> {
         val bytes = hexBytes(command("01$pid"))
-        val marker = listOf(0x41, pid.toInt(16))
-        val index = bytes.windowed(2).indexOf(marker)
+        val p = pid.toInt(16)
+        val index = bytes.windowed(2).indexOfFirst { it[0] == 0x41 && it[1] == p }
         return if (index >= 0) bytes.drop(index + 2) else emptyList()
     }
 
     fun readVin(): String {
-        val bytes = hexBytes(command("0902", 10000))
-        val start = bytes.windowed(2).indexOfFirst { it[0] == 0x49 && it[1] == 0x02 }
-        if (start < 0) return "Non disponible"
-        val data = bytes.drop(start + 2)
-        val ascii = data.filter { it in 0x30..0x39 || it in 0x41..0x5A }
+        val raw = command("0902", 10000)
+        val frames = payloadLines(raw)
+        val vinBytes = mutableListOf<Int>()
+        frames.forEach { row ->
+            val idx = row.windowed(2).indexOfFirst { it[0] == 0x49 && it[1] == 0x02 }
+            if (idx >= 0) {
+                var data = row.drop(idx + 2)
+                if (data.isNotEmpty() && data[0] in 1..9) data = data.drop(1)
+                vinBytes.addAll(data)
+            }
+        }
+        val text = vinBytes.filter { it in 0x30..0x39 || it in 0x41..0x5A }
             .map { it.toChar() }.joinToString("")
-        return Regex("[A-HJ-NPR-Z0-9]{17}").find(ascii)?.value ?: "Non disponible"
+        return Regex("[A-HJ-NPR-Z0-9]{17}").find(text)?.value ?: "Non disponible (ECU n'a pas fourni Mode 09 PID 02)"
     }
 
     private fun readDtcs(): String {
@@ -126,8 +135,8 @@ class Elm327Client {
     fun vehicleIdentity(): String {
         val vin = readVin()
         val protocol = runCatching { command("ATDP") }.getOrDefault("Unknown")
-        val ecu = "Standard OBD-II ECU"
-        return "VIN: $vin\nOBD protocol: $protocol\nECU: $ecu\n\nDiagnostics below use data reported directly by the ECU."
+        val ecu = runCatching { command("090A", 7000) }.getOrDefault("Non disponible")
+        return "VIN: $vin\nProtocole OBD: $protocol\nNom ECU / Mode 09: $ecu\n\nCes informations viennent directement du véhicule. Aucune marque/modèle n’est inventée."
     }
 
     private fun explain(code: String): String {
