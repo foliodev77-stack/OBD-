@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                         vehicleInfo.text=identity
                         vehicleCard.visibility=View.VISIBLE
                         panel.visibility=View.VISIBLE
-                        results.text=if(needsCapture) "VIN STANDARD NON RETOURNÉ — CAPTURE ECU RÉELLE\n\n$capture\n\nFaites une capture d’écran de cette zone et envoyez-la." else "VIN lu correctement. Sélectionnez un test."
+                        results.text=if(needsCapture) "VIN non fourni par ce calculateur. Le diagnostic OBD-II reste disponible.\n\nCAPTURE ECU RÉELLE\n\n$capture" else "VIN lu correctement. Sélectionnez un test."
                         title.text="VIN Scan"
                     }
                 } catch(e:Exception) { runOnUiThread { results.text="VIN non lu : ${e.message}\nContact moteur sur ON, puis réessayez." } }
