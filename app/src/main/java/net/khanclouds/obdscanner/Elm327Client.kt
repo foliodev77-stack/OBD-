@@ -1,49 +1,137 @@
 package net.khanclouds.obdscanner
-import android.bluetooth.*
-import java.io.*
+
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothSocket
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.util.UUID
-class Elm327Client{
- private var socket:BluetoothSocket?=null;private var reader:BufferedReader?=null
- fun connect(d:BluetoothDevice){close();BluetoothAdapter.getDefaultAdapter()?.cancelDiscovery();val u=UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-  try{socket=d.createRfcommSocketToServiceRecord(u).also{it.connect()}}catch(e:Exception){val m=d.javaClass.getMethod("createRfcommSocket",Int::class.javaPrimitiveType);socket=(m.invoke(d,1) as BluetoothSocket).also{it.connect()}}
-  reader=BufferedReader(InputStreamReader(socket!!.inputStream));command("ATZ",7000);Thread.sleep(500);listOf("ATE0","ATL0","ATS0","ATH0","ATSP0").forEach{command(it)}
- }
- fun command(c:String,timeout:Long=5000):String{val s=socket?:error("Not connected");s.outputStream.write((c+"\r").toByteArray());s.outputStream.flush();val o=StringBuilder();val end=System.currentTimeMillis()+timeout
-  while(System.currentTimeMillis()<end){if(reader!!.ready()){val x=reader!!.read();if(x<0||x.toChar()=='>')break;o.append(x.toChar())}else Thread.sleep(15)}
-  val z=o.toString().replace("\r"," ").replace("\n"," ").trim();if(z.isBlank())throw Exception("No response for $c");return z
- }
- private fun hexBytes(r:String):List<Int>{val clean=r.replace(Regex("[^0-9A-Fa-f]"),"");return clean.chunked(2).mapNotNull{it.toIntOrNull(16)}}
- private fun value(pid:String):List<Int>{ val b=hexBytes(command("01$pid")); val marker=listOf(0x41,pid.toInt(16)); val i=b.windowed(2).indexOf(marker); return if(i>=0)b.drop(i+2) else emptyList() }
- private fun vin():String{val b=hexBytes(command("0902",8000));val chars=b.filter{it in 32..126}.map{it.toChar()}.joinToString("");return Regex("[A-HJ-NPR-Z0-9]{17}").find(chars)?.value?:"Not returned by ECU"}
- private fun dtcs():String{val b=hexBytes(command("03"));val i=b.indexOf(0x43);if(i<0)return "No standard DTC response";val x=b.drop(i+1);val out=mutableListOf<String>();for(k in x.indices step 2){if(k+1>=x.size)break;val a=x[k];val c=x[k+1];if(a==0&&c==0)continue;val pre=arrayOf("P","C","B","U")[(a shr 6) and 3];out.add("$pre${(a shr 4) and 3}${a and 15}${(c shr 4) and 15}${c and 15}")};return if(out.isEmpty())"No stored powertrain DTCs" else out.joinToString(", ")}
- fun liveData():String{\n  fun one(p:String):List<Int> = value(p)\n  val rpm=one("0C"); val speed=one("0D"); val cool=one("05"); val load=one("04"); val throttle=one("11"); val maf=one("10"); val volt=runCatching{command("ATRV")}.getOrDefault("N/A")
-  return """LIVE ENGINE DATA
-RPM: ${if(rpm.size>=2)(rpm[0]*256+rpm[1])/4 else "N/A"}
-Vehicle speed: ${speed.firstOrNull()?:"N/A"} km/h
-Coolant: ${cool.firstOrNull()?.minus(40)?:"N/A"} °C
-Engine load: ${load.firstOrNull()?.times(100)?.div(255)?:"N/A"} %
-Throttle: ${throttle.firstOrNull()?.times(100)?.div(255)?:"N/A"} %
-MAF: ${if(maf.size>=2)(maf[0]*256+maf[1])/100.0 else "N/A"} g/s
-Adapter voltage: $volt"""
- }
- fun fullScan():String{val vin=runCatching{vin()}.getOrDefault("Not available");val dtc=runCatching{dtcs()}.getOrDefault("Not available");val proto=runCatching{command("ATDP")}.getOrDefault("Unknown");val live=liveData()
-  return """FULL OBD-II REPORT
 
-Vehicle VIN: $vin
-Protocol: $proto
+class Elm327Client {
+    private var socket: BluetoothSocket? = null
+    private var reader: BufferedReader? = null
 
-Stored diagnostic trouble codes:
-$dtc
+    fun connect(device: BluetoothDevice) {
+        close()
+        BluetoothAdapter.getDefaultAdapter()?.cancelDiscovery()
+        val uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+        try {
+            socket = device.createRfcommSocketToServiceRecord(uuid)
+            socket!!.connect()
+        } catch (first: Exception) {
+            try {
+                val method = device.javaClass.getMethod("createRfcommSocket", Int::class.javaPrimitiveType)
+                socket = method.invoke(device, 1) as BluetoothSocket
+                socket!!.connect()
+            } catch (second: Exception) {
+                throw Exception("Bluetooth connection failed: " + (second.cause?.message ?: second.message))
+            }
+        }
+        reader = BufferedReader(InputStreamReader(socket!!.inputStream))
+        command("ATZ", 7000)
+        Thread.sleep(500)
+        for (cmd in listOf("ATE0", "ATL0", "ATS0", "ATH0", "ATSP0")) command(cmd)
+    }
 
-$live
+    fun command(cmd: String, timeout: Long = 5000): String {
+        val active = socket ?: throw Exception("Not connected")
+        active.outputStream.write((cmd + "\r").toByteArray(Charsets.US_ASCII))
+        active.outputStream.flush()
+        val output = StringBuilder()
+        val deadline = System.currentTimeMillis() + timeout
+        while (System.currentTimeMillis() < deadline) {
+            if (reader!!.ready()) {
+                val ch = reader!!.read()
+                if (ch < 0 || ch.toChar() == '>') break
+                output.append(ch.toChar())
+            } else Thread.sleep(15)
+        }
+        val result = output.toString().replace("\r", " ").replace("\n", " ").trim()
+        if (result.isBlank()) throw Exception("No response for $cmd")
+        return result
+    }
 
-Readiness / supported monitors (raw):
-${runCatching{command("0101")}.getOrDefault("N/A")}
+    private fun hexBytes(response: String): List<Int> {
+        val clean = response.replace(Regex("[^0-9A-Fa-f]"), "")
+        return clean.chunked(2).mapNotNull { it.toIntOrNull(16) }
+    }
 
-Freeze frame DTC (raw):
-${runCatching{command("0202")}.getOrDefault("N/A")}
+    private fun pid(pid: String): List<Int> {
+        val bytes = hexBytes(command("01$pid"))
+        val marker = listOf(0x41, pid.toInt(16))
+        val index = bytes.windowed(2).indexOf(marker)
+        return if (index >= 0) bytes.drop(index + 2) else emptyList()
+    }
 
-Note: Generic ELM327 OBD-II exposes emissions/powertrain data. ABS, airbag, body, service reset and manufacturer-specific modules require vehicle-specific diagnostic protocols."""
- }
- fun close(){try{socket?.close()}catch(_:Exception){};socket=null;reader=null}
+    private fun readVin(): String {
+        val bytes = hexBytes(command("0902", 8000))
+        val text = bytes.filter { it in 32..126 }.map { it.toChar() }.joinToString("")
+        return Regex("[A-HJ-NPR-Z0-9]{17}").find(text)?.value ?: "Not returned by ECU"
+    }
+
+    private fun readDtcs(): String {
+        val bytes = hexBytes(command("03"))
+        val start = bytes.indexOf(0x43)
+        if (start < 0) return "No standard DTC response"
+        val data = bytes.drop(start + 1)
+        val codes = mutableListOf<String>()
+        var i = 0
+        while (i + 1 < data.size) {
+            val a = data[i]
+            val b = data[i + 1]
+            if (a != 0 || b != 0) {
+                val prefix = arrayOf("P", "C", "B", "U")[(a shr 6) and 3]
+                codes.add(prefix + ((a shr 4) and 3) + (a and 15) + ((b shr 4) and 15) + (b and 15))
+            }
+            i += 2
+        }
+        return if (codes.isEmpty()) "No stored powertrain DTCs" else codes.joinToString(", ")
+    }
+
+    fun liveData(): String {
+        val rpm = pid("0C")
+        val speed = pid("0D")
+        val coolant = pid("05")
+        val load = pid("04")
+        val throttle = pid("11")
+        val maf = pid("10")
+        val voltage = runCatching { command("ATRV") }.getOrDefault("N/A")
+        val rpmText = if (rpm.size >= 2) ((rpm[0] * 256 + rpm[1]) / 4).toString() else "N/A"
+        val speedText = speed.firstOrNull()?.toString() ?: "N/A"
+        val coolantText = coolant.firstOrNull()?.let { (it - 40).toString() } ?: "N/A"
+        val loadText = load.firstOrNull()?.let { (it * 100 / 255).toString() } ?: "N/A"
+        val throttleText = throttle.firstOrNull()?.let { (it * 100 / 255).toString() } ?: "N/A"
+        val mafText = if (maf.size >= 2) ((maf[0] * 256 + maf[1]) / 100.0).toString() else "N/A"
+        return "LIVE ENGINE DATA\n" +
+            "RPM: $rpmText\n" +
+            "Vehicle speed: $speedText km/h\n" +
+            "Coolant: $coolantText C\n" +
+            "Engine load: $loadText %\n" +
+            "Throttle: $throttleText %\n" +
+            "MAF: $mafText g/s\n" +
+            "Adapter voltage: $voltage"
+    }
+
+    fun fullScan(): String {
+        val vin = runCatching { readVin() }.getOrDefault("Not available")
+        val dtcs = runCatching { readDtcs() }.getOrDefault("Not available")
+        val protocol = runCatching { command("ATDP") }.getOrDefault("Unknown")
+        val live = runCatching { liveData() }.getOrDefault("Live data unavailable")
+        val readiness = runCatching { command("0101") }.getOrDefault("N/A")
+        val freeze = runCatching { command("0202") }.getOrDefault("N/A")
+        return "FULL OBD-II REPORT\n\n" +
+            "Vehicle VIN: $vin\n" +
+            "Protocol: $protocol\n\n" +
+            "Stored diagnostic trouble codes:\n$dtcs\n\n" +
+            live + "\n\n" +
+            "Readiness / supported monitors (raw):\n$readiness\n\n" +
+            "Freeze frame DTC (raw):\n$freeze\n\n" +
+            "Generic ELM327 reads standard OBD-II powertrain/emissions data. Manufacturer modules may need brand-specific diagnostics."
+    }
+
+    fun close() {
+        try { socket?.close() } catch (_: Exception) {}
+        socket = null
+        reader = null
+    }
 }
