@@ -51,39 +51,58 @@ class Elm327Client {
         return result
     }
 
-    private fun payloadLines(response: String): List<List<Int>> {
-        return response.uppercase().replace("SEARCHING...", " ").replace("NO DATA", " ")
-            .split(Regex("[\\r\\n]+|(?=\\d+:)"))
-            .map { line ->
-                val clean = line.replace(Regex("^\\s*\\d+:\\s*"), "")
-                Regex("[0-9A-F]{2}").findAll(clean).map { it.value.toInt(16) }.toList()
-            }.filter { it.isNotEmpty() }
-    }
-
-    private fun hexBytes(response: String): List<Int> = payloadLines(response).flatten()
+    private fun cleanHex(s: String): String =
+        s.uppercase().replace(Regex("[^0-9A-F]"), "")
 
     private fun pid(pid: String): List<Int> {
-        val bytes = hexBytes(command("01$pid"))
-        val p = pid.toInt(16)
-        val index = bytes.windowed(2).indexOfFirst { it[0] == 0x41 && it[1] == p }
-        return if (index >= 0) bytes.drop(index + 2) else emptyList()
+        val compact = cleanHex(command("01$pid"))
+        val marker = "41" + pid.uppercase()
+        val i = compact.indexOf(marker)
+        if (i < 0) return emptyList()
+        return compact.substring(i + marker.length).chunked(2).mapNotNull { it.toIntOrNull(16) }
+    }
+
+    private fun mode09Records(raw: String, pid: String): List<Pair<Int,String>> {
+        val records = mutableListOf<Pair<Int,String>>()
+        Regex("(?:(?:^|\\s)(\\d+):\\s*)?49\\s*0$pid\\s*([0-9A-F]{2})\\s*((?:[0-9A-F]{2}\\s*)+)", RegexOption.IGNORE_CASE)
+            .findAll(raw.replace("\\r"," ").replace("\\n"," ")).forEach { m ->
+                val seq=m.groupValues[2].toInt(16)
+                val data=m.groupValues[3].replace(Regex("\\s+"),"")
+                records.add(seq to data)
+            }
+        if(records.isNotEmpty()) return records.sortedBy { it.first }
+        val compact=cleanHex(raw)
+        val marker="490$pid"
+        var pos=0
+        while(true){
+            val i=compact.indexOf(marker,pos); if(i<0) break
+            val after=compact.substring(i+marker.length)
+            if(after.length>=2){
+                val seq=after.substring(0,2).toIntOrNull(16) ?: 0
+                records.add(seq to after.drop(2).take(32))
+            }
+            pos=i+marker.length
+        }
+        return records.sortedBy { it.first }
     }
 
     fun readVin(): String {
-        val raw = command("0902", 10000)
-        val frames = payloadLines(raw)
-        val vinBytes = mutableListOf<Int>()
-        frames.forEach { row ->
-            val idx = row.windowed(2).indexOfFirst { it[0] == 0x49 && it[1] == 0x02 }
-            if (idx >= 0) {
-                var data = row.drop(idx + 2)
-                if (data.isNotEmpty() && data[0] in 1..9) data = data.drop(1)
-                vinBytes.addAll(data)
-            }
-        }
-        val text = vinBytes.filter { it in 0x30..0x39 || it in 0x41..0x5A }
+        val raw=command("0902",10000)
+        val records=mode09Records(raw,"2")
+        val hex=records.joinToString("") { it.second }
+        val ascii=hex.chunked(2).mapNotNull { it.toIntOrNull(16) }
+            .filter { it in 0x30..0x39 || it in 0x41..0x5A }
             .map { it.toChar() }.joinToString("")
-        return Regex("[A-HJ-NPR-Z0-9]{17}").find(text)?.value ?: "Non disponible (ECU n'a pas fourni Mode 09 PID 02)"
+        return Regex("[A-HJ-NPR-Z0-9]{17}").find(ascii)?.value
+            ?: "Non disponible (véhicule n'a pas renvoyé le VIN standard)"
+    }
+
+    fun readEcuName(): String {
+        val raw=command("090A",8000)
+        val records=mode09Records(raw,"A")
+        val text=records.joinToString("") { it.second }.chunked(2).mapNotNull { it.toIntOrNull(16) }
+            .filter { it in 32..126 }.map { it.toChar() }.joinToString("").trim()
+        return text.ifBlank { "Non disponible" }
     }
 
     private fun readDtcs(): String {
@@ -135,7 +154,7 @@ class Elm327Client {
     fun vehicleIdentity(): String {
         val vin = readVin()
         val protocol = runCatching { command("ATDP") }.getOrDefault("Unknown")
-        val ecu = runCatching { command("090A", 7000) }.getOrDefault("Non disponible")
+        val ecu = runCatching { readEcuName() }.getOrDefault("Non disponible")
         return "VIN: $vin\nProtocole OBD: $protocol\nNom ECU / Mode 09: $ecu\n\nCes informations viennent directement du véhicule. Aucune marque/modèle n’est inventée."
     }
 
