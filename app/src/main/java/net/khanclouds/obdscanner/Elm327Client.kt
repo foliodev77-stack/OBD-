@@ -158,6 +158,23 @@ class Elm327Client {
             "Adapter voltage: $voltage"
     }
 
+    fun vinDiagnosticCapture(): String {
+        val out = StringBuilder()
+        fun capture(cmd: String, timeout: Long = 8000) {
+            out.append("\n> ").append(cmd).append("\n")
+            out.append(runCatching { command(cmd, timeout) }.getOrElse { "ERROR: " + (it.message ?: "unknown") }).append("\n")
+        }
+        capture("ATDP")
+        capture("ATDPN")
+        capture("0900")
+        capture("0902", 12000)
+        capture("090A", 10000)
+        capture("ATH1")
+        capture("0902", 12000)
+        capture("ATH0")
+        return out.toString().trim()
+    }
+
     fun vehicleIdentity(): String {
         val vin = readVin()
         val protocol = runCatching { command("ATDP") }.getOrDefault("Unknown")
