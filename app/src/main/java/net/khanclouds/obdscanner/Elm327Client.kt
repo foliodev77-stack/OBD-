@@ -112,7 +112,14 @@ class Elm327Client {
             "Adapter voltage: $voltage"
     }
 
-    fun vehicleIdentity(): String {\n        val vin = readVin()\n        val protocol = runCatching { command("ATDP") }.getOrDefault("Unknown")\n        val ecu = runCatching { command("090A") }.getOrDefault("Not available")\n        return "VIN: $vin\\nOBD protocol: $protocol\\nECU name/raw: $ecu\\n\\nVehicle-specific make/model/year decoding can be added from a VIN database; diagnostics below use data reported directly by the ECU."\n    }\n\n    fun fullScan(): String {
+    fun vehicleIdentity(): String {
+        val vin = readVin()
+        val protocol = runCatching { command("ATDP") }.getOrDefault("Unknown")
+        val ecu = runCatching { command("090A") }.getOrDefault("Not available")
+        return "VIN: $vin\nOBD protocol: $protocol\nECU name/raw: $ecu\n\nDiagnostics below use data reported directly by the ECU."
+    }
+
+    fun fullScan(): String {
         val vin = runCatching { readVin() }.getOrDefault("Not available")
         val dtcs = runCatching { readDtcs() }.getOrDefault("Not available")
         val protocol = runCatching { command("ATDP") }.getOrDefault("Unknown")
