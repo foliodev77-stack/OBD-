@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:orientation="vertical" android:padding="20dp"
+        android:layout_width="match_parent" android:layout_height="wrap_content">
+        <TextView android:text="OBD Scanner" android:textStyle="bold" android:textSize="28sp"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <TextView android:id="@+id/status" android:text="Not connected" android:paddingTop="12dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <Spinner android:id="@+id/deviceSpinner" android:layout_width="match_parent" android:layout_height="56dp"/>
+        <Button android:id="@+id/connectBtn" android:text="Connect OBD"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <Button android:id="@+id/scanBtn" android:text="Scan Vehicle" android:enabled="false"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <TextView android:id="@+id/results" android:text="VIN, ECU and DTC results will appear here."
+            android:textIsSelectable="true" android:paddingTop="18dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    </LinearLayout>
+</ScrollView>
