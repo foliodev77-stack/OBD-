@@ -62,11 +62,17 @@ class Elm327Client {
     }
 
     private fun pid(pid: String): List<Int> {
-        val compact = cleanHex(command("01$pid"))
-        val marker = "41" + pid.uppercase()
-        val i = compact.indexOf(marker)
-        if (i < 0) return emptyList()
-        return compact.substring(i + marker.length).chunked(2).mapNotNull { it.toIntOrNull(16) }
+        val raw = command("01$pid")
+        val normalized = raw.uppercase()
+            .replace("SEARCHING...", " ")
+            .replace("NO DATA", " ")
+            .replace("STOPPED", " ")
+            .replace("?", " ")
+        val bytes = Regex("[0-9A-F]{2}").findAll(normalized).map { it.value.toInt(16) }.toList()
+        for (i in 0 until bytes.size - 1) {
+            if (bytes[i] == 0x41 && bytes[i + 1] == pid.toInt(16)) return bytes.drop(i + 2)
+        }
+        return emptyList()
     }
 
     private fun mode09Records(raw: String, pid: String): List<Pair<Int,String>> {
@@ -135,6 +141,7 @@ class Elm327Client {
     }
 
     fun liveData(): String {
+        val supported = runCatching { command("0100") }.getOrDefault("N/A")
         val rpm = pid("0C")
         val speed = pid("0D")
         val coolant = pid("05")
@@ -148,7 +155,8 @@ class Elm327Client {
         val loadText = load.firstOrNull()?.let { (it * 100 / 255).toString() } ?: "N/A"
         val throttleText = throttle.firstOrNull()?.let { (it * 100 / 255).toString() } ?: "N/A"
         val mafText = if (maf.size >= 2) ((maf[0] * 256 + maf[1]) / 100.0).toString() else "N/A"
-        return "LIVE ENGINE DATA\n" +
+        return "LIVE ENGINE DATA — ECU VALUES\n" +
+            "Supported PID response: $supported\n" +
             "RPM: $rpmText\n" +
             "Vehicle speed: $speedText km/h\n" +
             "Coolant: $coolantText C\n" +
