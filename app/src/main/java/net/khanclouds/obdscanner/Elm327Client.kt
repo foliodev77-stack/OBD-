@@ -119,6 +119,18 @@ class Elm327Client {
         return "VIN: $vin\nOBD protocol: $protocol\nECU name/raw: $ecu\n\nDiagnostics below use data reported directly by the ECU."
     }
 
+    private fun explain(code: String): String {
+        val known = mapOf("P0300" to "Rates allumage multiples", "P0301" to "Rate cylindre 1", "P0302" to "Rate cylindre 2", "P0401" to "Debit EGR insuffisant", "P0420" to "Efficacite catalyseur sous le seuil", "P0171" to "Melange trop pauvre banc 1", "P0101" to "Debitmetre air plage/performance", "P0562" to "Tension systeme trop faible")
+        return known[code] ?: when(code.firstOrNull()) { 'P' -> "Defaut moteur/transmission"; 'C' -> "Defaut chassis"; 'B' -> "Defaut carrosserie"; 'U' -> "Defaut communication reseau"; else -> "Code diagnostic" }
+    }
+
+    fun quickTest(): String {
+        val raw = readDtcs()
+        val codes = Regex("[PCBU][0-3][0-9A-F]{3}").findAll(raw).map { it.value }.toList()
+        val engine = if(codes.isEmpty()) "normal - aucun code defaut" else "ANOMALIE (" + codes.size + ")\n" + codes.joinToString("\n") { it + " - " + explain(it) }
+        return "RAPPORT INSPECTION\n\n01 Electronique du moteur\n" + engine + "\n\n02 Electronique boite de vitesses\nNon accessible via OBD-II generique\n\n03 Electronique freins / ABS\nNon accessible via OBD-II generique\n\n15 Airbag / SRS\nNon accessible via OBD-II generique\n\nLes systemes non accessibles necessitent les protocoles constructeur."
+    }
+
     fun fullScan(): String {
         val vin = runCatching { readVin() }.getOrDefault("Not available")
         val dtcs = runCatching { readDtcs() }.getOrDefault("Not available")
