@@ -52,8 +52,12 @@ class Elm327Client {
     }
 
     private fun hexBytes(response: String): List<Int> {
-        val clean = response.replace(Regex("[^0-9A-Fa-f]"), "")
-        return clean.chunked(2).mapNotNull { it.toIntOrNull(16) }
+        val normalized = response.uppercase()
+            .replace("SEARCHING...", " ")
+            .replace("NO DATA", " ")
+            .replace("STOPPED", " ")
+        return Regex("(?<![0-9A-F])[0-9A-F]{2}(?![0-9A-F])")
+            .findAll(normalized).map { it.value.toInt(16) }.toList()
     }
 
     private fun pid(pid: String): List<Int> {
@@ -64,9 +68,13 @@ class Elm327Client {
     }
 
     fun readVin(): String {
-        val bytes = hexBytes(command("0902", 8000))
-        val text = bytes.filter { it in 32..126 }.map { it.toChar() }.joinToString("")
-        return Regex("[A-HJ-NPR-Z0-9]{17}").find(text)?.value ?: "Not returned by ECU"
+        val bytes = hexBytes(command("0902", 10000))
+        val start = bytes.windowed(2).indexOfFirst { it[0] == 0x49 && it[1] == 0x02 }
+        if (start < 0) return "Non disponible"
+        val data = bytes.drop(start + 2)
+        val ascii = data.filter { it in 0x30..0x39 || it in 0x41..0x5A }
+            .map { it.toChar() }.joinToString("")
+        return Regex("[A-HJ-NPR-Z0-9]{17}").find(ascii)?.value ?: "Non disponible"
     }
 
     private fun readDtcs(): String {
@@ -81,11 +89,14 @@ class Elm327Client {
             val b = data[i + 1]
             if (a != 0 || b != 0) {
                 val prefix = arrayOf("P", "C", "B", "U")[(a shr 6) and 3]
-                codes.add(prefix + ((a shr 4) and 3) + (a and 15) + ((b shr 4) and 15) + (b and 15))
+                codes.add(prefix + ((a shr 4) and 3).toString() +
+                    (a and 15).toString(16).uppercase() +
+                    ((b shr 4) and 15).toString(16).uppercase() +
+                    (b and 15).toString(16).uppercase())
             }
             i += 2
         }
-        return if (codes.isEmpty()) "No stored powertrain DTCs" else codes.joinToString(", ")
+        return if (codes.isEmpty()) "No stored powertrain DTCs" else codes.distinct().joinToString(", ")
     }
 
     fun liveData(): String {
