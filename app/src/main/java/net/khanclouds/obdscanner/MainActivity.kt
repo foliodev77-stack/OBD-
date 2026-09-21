@@ -66,7 +66,15 @@ class MainActivity : AppCompatActivity() {
             thread {
                 try {
                     val identity=client.vehicleIdentity()
-                    runOnUiThread { vehicleInfo.text=identity; vehicleCard.visibility=View.VISIBLE; panel.visibility=View.VISIBLE; results.text="Identification terminée. Sélectionnez un test."; title.text="VIN Scan" }
+                    val needsCapture=identity.contains("Non disponible")
+                    val capture=if(needsCapture) client.vinDiagnosticCapture() else ""
+                    runOnUiThread {
+                        vehicleInfo.text=identity
+                        vehicleCard.visibility=View.VISIBLE
+                        panel.visibility=View.VISIBLE
+                        results.text=if(needsCapture) "VIN STANDARD NON RETOURNÉ — CAPTURE ECU RÉELLE\n\n$capture\n\nFaites une capture d’écran de cette zone et envoyez-la." else "VIN lu correctement. Sélectionnez un test."
+                        title.text="VIN Scan"
+                    }
                 } catch(e:Exception) { runOnUiThread { results.text="VIN non lu : ${e.message}\nContact moteur sur ON, puis réessayez." } }
             }
         }
