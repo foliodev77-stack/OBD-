@@ -54,6 +54,13 @@ class Elm327Client {
     private fun cleanHex(s: String): String =
         s.uppercase().replace(Regex("[^0-9A-F]"), "")
 
+    private fun hexBytes(response: String): List<Int> {
+        val compact = cleanHex(response)
+        return compact.chunked(2).mapNotNull { pair ->
+            if (pair.length == 2) pair.toIntOrNull(16) else null
+        }
+    }
+
     private fun pid(pid: String): List<Int> {
         val compact = cleanHex(command("01$pid"))
         val marker = "41" + pid.uppercase()
