@@ -9,6 +9,9 @@ import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import com.github.eltonvs.obd.connection.ObdDeviceConnection
 import com.github.eltonvs.obd.command.control.VINCommand
+import com.github.eltonvs.obd.command.control.TroubleCodesCommand
+import com.github.eltonvs.obd.command.control.PendingTroubleCodesCommand
+import com.github.eltonvs.obd.command.control.PermanentTroubleCodesCommand
 import com.github.eltonvs.obd.command.engine.RPMCommand
 import com.github.eltonvs.obd.command.engine.SpeedCommand
 import com.github.eltonvs.obd.command.engine.ThrottlePositionCommand
@@ -130,25 +133,21 @@ class Elm327Client {
     }
 
     private fun readDtcs(): String {
-        val bytes = hexBytes(command("03"))
-        val start = bytes.indexOf(0x43)
-        if (start < 0) return "No standard DTC response"
-        val data = bytes.drop(start + 1)
-        val codes = mutableListOf<String>()
-        var i = 0
-        while (i + 1 < data.size) {
-            val a = data[i]
-            val b = data[i + 1]
-            if (a != 0 || b != 0) {
-                val prefix = arrayOf("P", "C", "B", "U")[(a shr 6) and 3]
-                codes.add(prefix + ((a shr 4) and 3).toString() +
-                    (a and 15).toString(16).uppercase() +
-                    ((b shr 4) and 15).toString(16).uppercase() +
-                    (b and 15).toString(16).uppercase())
+        val connection = obd ?: throw Exception("Not connected")
+        return runBlocking {
+            suspend fun read(command: com.github.eltonvs.obd.command.ObdCommand): List<String> {
+                return try {
+                    connection.run(command, useCache = false, maxRetries = 5).value
+                        .split(",").map { it.trim().uppercase() }
+                        .filter { Regex("^[PCBU][0-3][0-9A-F]{3}$").matches(it) && it != "P0000" }
+                } catch (_: Exception) { emptyList() }
             }
-            i += 2
+            val stored = read(TroubleCodesCommand())
+            val pending = read(PendingTroubleCodesCommand())
+            val permanent = read(PermanentTroubleCodesCommand())
+            val all = (stored + pending + permanent).distinct()
+            if (all.isEmpty()) "No stored powertrain DTCs" else all.joinToString(", ")
         }
-        return if (codes.isEmpty()) "No stored powertrain DTCs" else codes.distinct().joinToString(", ")
     }
 
     fun liveData(): String {
