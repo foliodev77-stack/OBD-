@@ -63,7 +63,7 @@ class Elm327Client {
         return if (index >= 0) bytes.drop(index + 2) else emptyList()
     }
 
-    private fun readVin(): String {
+    fun readVin(): String {
         val bytes = hexBytes(command("0902", 8000))
         val text = bytes.filter { it in 32..126 }.map { it.toChar() }.joinToString("")
         return Regex("[A-HJ-NPR-Z0-9]{17}").find(text)?.value ?: "Not returned by ECU"
@@ -112,7 +112,7 @@ class Elm327Client {
             "Adapter voltage: $voltage"
     }
 
-    fun fullScan(): String {
+    fun vehicleIdentity(): String {\n        val vin = readVin()\n        val protocol = runCatching { command("ATDP") }.getOrDefault("Unknown")\n        val ecu = runCatching { command("090A") }.getOrDefault("Not available")\n        return "VIN: $vin\\nOBD protocol: $protocol\\nECU name/raw: $ecu\\n\\nVehicle-specific make/model/year decoding can be added from a VIN database; diagnostics below use data reported directly by the ECU."\n    }\n\n    fun fullScan(): String {
         val vin = runCatching { readVin() }.getOrDefault("Not available")
         val dtcs = runCatching { readDtcs() }.getOrDefault("Not available")
         val protocol = runCatching { command("ATDP") }.getOrDefault("Unknown")
